@@ -1,0 +1,38 @@
+# =========================
+# Unreal Generated
+# =========================
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.vs/
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Unreal Assets (WICHTIG für dich)
+# =========================
+# Content/
