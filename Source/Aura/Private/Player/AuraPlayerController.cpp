@@ -10,8 +10,10 @@
 #include "NavigationSystem.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
+#include "UI/Widget/DamageTextComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -26,6 +28,18 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
 	AutoRun();
+}
+
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
+{
+	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
+	{
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+		DamageText->RegisterComponent();
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		DamageText->SetDamageText(DamageAmount, bBlockedHit, bCriticalHit);
+	}
 }
 
 void AAuraPlayerController::AutoRun()
@@ -89,17 +103,20 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
-			if (UNavigationPath* NathPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
 				this, ControlledPawn->GetActorLocation(), CachedDestination))
 			{
 				Spline->ClearSplinePoints();
-				for (const FVector& PointLoc : NathPath->PathPoints)
+				for (const FVector& PointLoc : NavPath->PathPoints)
 				{
 					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
 					//DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
 				}
-				CachedDestination = NathPath->PathPoints[NathPath->PathPoints.Num() - 1];
-				bAutoRunning = true;
+				if (NavPath->PathPoints.Num() > 0)
+				{
+					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+					bAutoRunning = true;	
+				}				
 			}			
 		}
 		FollowTime = 0.f;
